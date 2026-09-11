@@ -49,6 +49,16 @@ Configure an account and wallet provider for writes. Server agents can instead s
 
 ## Optional courts
 
+## API evidence and prediction results
+
+`readApi(request, { allowedOrigins })` reads GET/POST JSON with headers, nested field selection, response limits and timeouts. This is an off-chain preview. `createApiMarket(spec, sources)` registers public GET evidence URLs and interpretation rules for independent validator retrieval.
+
+`predictionResult(spec, verdict, transaction, odds?)` validates market/spec identity, preserves quoted odds, and returns terminal payout weights only for successful finalized RESOLVED verdicts. It formats supplied data; it does not independently authenticate a receipt or infer future odds.
+
+Run `node examples/polymarket.ts` for live market quotes. Run `node examples/earthquake-contract.ts` to print a GenLayer contract for a historical USGS event. See [team features and limitations](docs/FEATURES.md).
+
+## Court configuration
+
 Pass `courtAddress` to enable `createCourt`, `createCase`, evidence and argument submissions, verdict requests, and appeals. The deployed contract remains the authority for eligibility, timing, and finality.
 
 ## Development

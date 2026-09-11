@@ -1,4 +1,6 @@
 export * from './client.ts';
+export * from './api.ts';
+export * from './prediction.ts';
 export * from './status.ts';
 export * from './market.ts';
 export * from './evidence.ts';
