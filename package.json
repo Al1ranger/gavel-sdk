@@ -1,0 +1,21 @@
+{
+  "name": "@gavel-sdk/core",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "TypeScript SDK for Gavel prediction market resolution and GenLayer courts",
+  "repository": { "type": "git", "url": "git+https://github.com/Al1ranger/gavel-sdk.git" },
+  "homepage": "https://github.com/Al1ranger/gavel-sdk#readme",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js", "default": "./dist/index.js" } },
+  "files": ["dist", "README.md"],
+  "engines": { "node": ">=22.13.0" },
+  "publishConfig": { "access": "public" },
+  "scripts": { "build": "tsc -p tsconfig.build.json", "prepack": "npm run build", "test": "node --test test/*.test.ts" },
+  "dependencies": {
+    "genlayer-js": "1.1.8"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}
