@@ -1,5 +1,14 @@
 node_modules/
 dist/
+artifacts/
+.gltest_cache/
+.venv/
+test-results/
+playwright-report/
+.browser-check/
+.npm-cache/
+__pycache__/
+.pytest_cache/
 *.tgz
 .env
 .env.*

@@ -43,6 +43,8 @@ export type MarketShape =
 
 /** Convert any supported convention to an implied probability in 0-1. */
 export function impliedProbability(format: OddsFormat, value: number | string): number {
+  if (!ODDS_FORMATS.includes(format)) throw new Error('Unknown odds format.');
+  if ((typeof value !== 'number' && typeof value !== 'string') || (typeof value === 'string' && !value.trim())) throw new Error('Odds must be a nonempty number or numeric string.');
   if (format === 'PROBABILITY') {
     const probability = Number(value);
     if (!Number.isFinite(probability) || probability < 0 || probability > 1) throw new Error('A probability must fall between 0 and 1.');
@@ -56,6 +58,7 @@ export function impliedProbability(format: OddsFormat, value: number | string): 
   }
 
   if (format === 'FRACTIONAL') {
+    if (!/^\d+(?:\.\d+)?\/\d+(?:\.\d+)?$/.test(String(value))) throw new Error('Fractional odds must look like "5/2".');
     const [numerator, denominator] = String(value).split('/').map(Number);
     if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || numerator <= 0 || denominator <= 0) throw new Error('Fractional odds must look like "5/2".');
     return denominator / (numerator + denominator);

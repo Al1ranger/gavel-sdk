@@ -31,6 +31,7 @@ import { normalizeMarketSpec } from './market.ts';
 import { normalizeSources } from './court.ts';
 import { validateShape, type MarketShape, type OddsBook } from './marketKinds.ts';
 import type { MarketSpec, Outcome } from './client.ts';
+import { evidenceRuntime, normalizeEvidencePolicy, type EvidencePolicy } from './contractEvidence.ts';
 
 /** An extra judging criterion the developer's product needs. */
 export type MarketFeature = {
@@ -51,6 +52,12 @@ export type GenerateInput = {
   className?: string;
   /** Pinned GenLayer runner. Defaults to the one this repo is verified against. */
   runner?: string;
+  evidence?: EvidencePolicy;
+  /** Basis points; confidence is evidence sufficiency, never forecast odds. */
+  minimumConfidenceBps?: number;
+  confidenceToleranceBps?: number;
+  maxAttempts?: number;
+  retryDelaySeconds?: number;
 };
 
 const DEFAULT_RUNNER = 'py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6';
@@ -77,7 +84,8 @@ function normalizeFeatures(features: MarketFeature[]): MarketFeature[] {
 
     const requirement = String(feature.requirement ?? '').trim();
     if (requirement.length < 10 || requirement.length > 600) throw new Error(`Feature ${id} needs a requirement of 10-600 characters.`);
-    return { id, required: Boolean(feature.required), requirement };
+    if (feature.required !== undefined && typeof feature.required !== 'boolean') throw new Error('Feature required must be boolean.');
+    return { id, required: feature.required ?? false, requirement };
   });
 }
 
@@ -116,6 +124,19 @@ export function generateIntelligentContract(input: GenerateInput): GeneratedCont
   // Sources are re-checked here even though normalizeMarketSpec already did:
   // this is the boundary that decides what the generated contract will fetch.
   normalizeSources(spec.approvedSources, 8);
+  const evidence = normalizeEvidencePolicy(input.evidence ?? {
+    sources: spec.approvedSources.map(url => ({ url, format: 'text' })),
+  });
+  if (evidence.sources.some(source => !spec.approvedSources.includes(source.url)) || evidence.sources.length !== spec.approvedSources.length) throw new Error('Evidence sources must match approvedSources exactly (use canonical HTTPS URLs).');
+  const minimumConfidenceBps = input.minimumConfidenceBps ?? 8000;
+  const confidenceToleranceBps = input.confidenceToleranceBps ?? 0;
+  const maxAttempts = input.maxAttempts ?? 8;
+  const retryDelaySeconds = input.retryDelaySeconds ?? 60;
+  for (const value of [minimumConfidenceBps, confidenceToleranceBps]) {
+    if (!Number.isSafeInteger(value) || value < 0 || value > 10000) throw new Error('Confidence must be integer basis points in 0-10000.');
+  }
+  if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 32) throw new Error('maxAttempts must be 1-32.');
+  if (!Number.isSafeInteger(retryDelaySeconds) || retryDelaySeconds < 1 || retryDelaySeconds > 86400) throw new Error('retryDelaySeconds must be 1-86400.');
 
   const compiledSpec = {
     approvedSources: spec.approvedSources,
@@ -127,6 +148,11 @@ export function generateIntelligentContract(input: GenerateInput): GeneratedCont
     resolutionTime: spec.resolutionTime,
     shape: input.shape,
     sourcePolicy: spec.sourcePolicy,
+    evidence,
+    minimumConfidenceBps,
+    confidenceToleranceBps,
+    maxAttempts,
+    retryDelaySeconds,
   };
 
   // One JSON string literal. JSON.stringify escapes quotes, backslashes and
@@ -152,14 +178,18 @@ from genlayer import *
 # supplied text is ever interpolated into executable code.
 GAVEL_SPEC_JSON = ${specLiteral}
 
+${evidenceRuntime}
 
 class ${className}(gl.Contract):
     verdict_json: str
     resolved: bool
+    attempts: DynArray[str]
+    last_attempt_at: u256
 
     def __init__(self):
         self.verdict_json = ""
         self.resolved = False
+        self.last_attempt_at = u256(0)
 
     def _spec(self) -> dict:
         return json.loads(GAVEL_SPEC_JSON)
@@ -205,7 +235,8 @@ Return JSON only:
   "winnerIndex": integer (-1 only for UNRESOLVED),
   "outcomeId": registered outcome id or "UNRESOLVED",
   "reasonCode": stable uppercase identifier,
-  "facts": [{{"claim": string, "source": approved URL, "supportsOutcome": registered outcome id}}],
+  "confidenceBps": integer from 0 to 10000 measuring evidence sufficiency, not event odds,
+  "facts": [{{"claim": string, "quote": exact nonempty substring of normalized source content, "source": approved URL, "supportsOutcome": registered outcome id}}],
   "rulesApplied": [{{"rule": exact immutable rule, "satisfied": boolean, "explanation": concise string}}],
   "featuresApplied": [{{"feature": exact feature id, "satisfied": boolean, "explanation": concise string}}],
   "conflicts": [{{"description": string, "sources": [approved URL]}}],
@@ -220,10 +251,12 @@ Return JSON only:
         status = str(result.get("status", ""))
         if status not in ("RESOLVED", "UNRESOLVED"):
             raise gl.vm.UserError("[LLM_ERROR] INVALID_STATUS")
-        try:
-            winner_index = int(result.get("winnerIndex", -2))
-        except Exception:
+        winner_index = result.get("winnerIndex", -2)
+        if type(winner_index) is not int:
             raise gl.vm.UserError("[LLM_ERROR] INVALID_WINNER_INDEX")
+        confidence = result.get("confidenceBps", 0)
+        if type(confidence) is not int or not 0 <= confidence <= 10000:
+            raise gl.vm.UserError("[LLM_ERROR] INVALID_CONFIDENCE")
 
         outcomes = spec["outcomes"]
         allowed_outcomes = [outcome["id"] for outcome in outcomes]
@@ -260,36 +293,45 @@ Return JSON only:
             normalized_facts.append(
                 {
                     "claim": str(fact.get("claim", ""))[:600],
+                    "quote": str(fact.get("quote", ""))[:600],
                     "source": source,
                     "supportsOutcome": support,
                 }
             )
 
         normalized_rules = []
+        seen_rules = []
         for applied in rules_applied[:32]:
             if not isinstance(applied, dict):
                 raise gl.vm.UserError("[LLM_ERROR] INVALID_RULE_APPLICATION")
             rule = str(applied.get("rule", ""))
             if rule not in spec["resolutionRules"]:
                 raise gl.vm.UserError("[LLM_ERROR] UNKNOWN_RULE")
+            if rule in seen_rules or type(applied.get("satisfied")) is not bool:
+                raise gl.vm.UserError("[LLM_ERROR] INVALID_RULE_BOOLEAN_OR_DUPLICATE")
+            seen_rules.append(rule)
             normalized_rules.append(
                 {
                     "explanation": str(applied.get("explanation", ""))[:600],
                     "rule": rule,
-                    "satisfied": bool(applied.get("satisfied", False)),
+                    "satisfied": applied["satisfied"],
                 }
             )
 
         feature_ids = [feature["id"] for feature in spec["features"]]
         normalized_features = []
         satisfied_ids = []
+        seen_features = []
         for applied in features_applied[:24]:
             if not isinstance(applied, dict):
                 raise gl.vm.UserError("[LLM_ERROR] INVALID_FEATURE_APPLICATION")
             feature_id = str(applied.get("feature", "")).strip().upper()
             if feature_id not in feature_ids:
                 raise gl.vm.UserError("[LLM_ERROR] UNKNOWN_FEATURE")
-            satisfied = bool(applied.get("satisfied", False))
+            if feature_id in seen_features or type(applied.get("satisfied")) is not bool:
+                raise gl.vm.UserError("[LLM_ERROR] INVALID_FEATURE_BOOLEAN_OR_DUPLICATE")
+            seen_features.append(feature_id)
+            satisfied = applied["satisfied"]
             if satisfied:
                 satisfied_ids.append(feature_id)
             normalized_features.append(
@@ -309,6 +351,9 @@ Return JSON only:
                 winner_index = -1
                 outcome_id = "UNRESOLVED"
 
+        if confidence < spec["minimumConfidenceBps"]:
+            status, winner_index, outcome_id = "UNRESOLVED", -1, "UNRESOLVED"
+
         normalized_conflicts = []
         for conflict in conflicts[:16]:
             if not isinstance(conflict, dict):
@@ -326,6 +371,7 @@ Return JSON only:
             )
 
         return {
+            "confidenceBps": confidence,
             "conflicts": normalized_conflicts,
             "facts": normalized_facts,
             "featuresApplied": normalized_features,
@@ -338,13 +384,64 @@ Return JSON only:
         }
 
     def _stable_verdict_matches(self, leader: dict, validator: dict) -> bool:
-        # Consensus on the decision alone. Differing prose between validators is
-        # expected and must never block finality.
+        spec = self._spec()
+        def criteria(value):
+            return (
+                sorted((r["rule"], r["satisfied"]) for r in value["rulesApplied"]),
+                sorted((r["feature"], r["satisfied"]) for r in value["featuresApplied"]),
+            )
         return (
             leader["status"] == validator["status"]
             and leader["winnerIndex"] == validator["winnerIndex"]
             and leader["outcomeId"] == validator["outcomeId"]
+            and criteria(leader) == criteria(validator)
+            and (leader["confidenceBps"] >= spec["minimumConfidenceBps"]) == (validator["confidenceBps"] >= spec["minimumConfidenceBps"])
+            and abs(leader["confidenceBps"] - validator["confidenceBps"]) <= spec["confidenceToleranceBps"]
         )
+
+    def _adjudicate(self, spec: dict) -> dict:
+        evidence = _fetch_evidence(spec["evidence"])
+        usable = [item for item in evidence if item["available"]]
+        if len(usable) < spec["evidence"]["minimumSources"]:
+            verdict = self._validate_result({
+                "status": "UNRESOLVED", "winnerIndex": -1, "outcomeId": "UNRESOLVED",
+                "confidenceBps": 0, "reasonCode": "INSUFFICIENT_EVIDENCE",
+                "reasoningSummary": "Required public evidence could not be acquired.",
+            }, spec)
+        else:
+            verdict = self._validate_result(gl.nondet.exec_prompt(
+                self._prompt(spec, evidence), response_format="json"
+            ), spec)
+            content_by_url = {item["source"]: item["content"] for item in usable}
+            for fact in verdict["facts"]:
+                if fact["source"] not in content_by_url or not fact["quote"] or fact["quote"] not in content_by_url[fact["source"]]:
+                    raise gl.vm.UserError("[LLM_ERROR] UNSUPPORTED_FACT_QUOTE")
+            if verdict["status"] == "RESOLVED":
+                if not any(f["supportsOutcome"] == verdict["outcomeId"] for f in verdict["facts"]) or len(verdict["rulesApplied"]) != len(spec["resolutionRules"]) or verdict["conflicts"]:
+                    raise gl.vm.UserError("[LLM_ERROR] INCOMPLETE_RESOLUTION_AUDIT")
+        return {"verdict": verdict, "evidence": evidence, "evidenceDigest": _digest(evidence)}
+
+    def _verify_candidate(self, candidate: dict, spec: dict) -> bool:
+        try:
+            independent = self._adjudicate(spec)
+            if candidate["evidenceDigest"] != _digest(candidate["evidence"]):
+                return False
+            if candidate["evidenceDigest"] != independent["evidenceDigest"]:
+                return False
+            leader = self._validate_result(candidate["verdict"], spec)
+            # Reject malformed, gate-crossing or inconsistent leader output,
+            # rather than silently repairing it into an acceptable candidate.
+            if leader != candidate["verdict"]:
+                return False
+            usable = {r["source"]: r["content"] for r in independent["evidence"] if r["available"]}
+            for fact in leader["facts"]:
+                if fact["source"] not in usable or not fact["quote"] or fact["quote"] not in usable[fact["source"]]:
+                    return False
+            if leader["status"] == "RESOLVED" and (not any(f["supportsOutcome"] == leader["outcomeId"] for f in leader["facts"]) or len(leader["rulesApplied"]) != len(spec["resolutionRules"]) or leader["conflicts"]):
+                return False
+            return self._stable_verdict_matches(leader, independent["verdict"])
+        except Exception:
+            return False
 
     @gl.public.write
     def resolve(self) -> None:
@@ -355,43 +452,32 @@ Return JSON only:
         now = int(datetime.now(timezone.utc).timestamp())
         if now < int(spec["resolutionTime"]):
             raise gl.vm.UserError("RESOLUTION_NOT_OPEN")
+        if len(self.attempts) >= spec["maxAttempts"]:
+            raise gl.vm.UserError("ATTEMPTS_EXHAUSTED")
+        if len(self.attempts) and now < int(self.last_attempt_at) + spec["retryDelaySeconds"]:
+            raise gl.vm.UserError("RETRY_TOO_EARLY")
 
         def adjudicate() -> dict:
-            evidence = []
-            for url in spec["approvedSources"]:
-                try:
-                    response = gl.nondet.web.get(url)
-                    content = ""
-                    if response.status == 200:
-                        content = response.body.decode("utf-8", errors="replace")[:24000]
-                    evidence.append(
-                        {"content": content, "source": url, "status": int(response.status)}
-                    )
-                except Exception:
-                    evidence.append({"content": "", "source": url, "status": 0})
-
-            result = gl.nondet.exec_prompt(
-                self._prompt(spec, evidence), response_format="json"
-            )
-            return self._validate_result(result, spec)
+            return self._adjudicate(spec)
 
         def validate_leader(leader_result: gl.vm.Result) -> bool:
             if not isinstance(leader_result, gl.vm.Return):
                 return False
-            try:
-                leader = self._validate_result(leader_result.calldata, spec)
-                validator = adjudicate()
-            except Exception:
-                return False
-            return self._stable_verdict_matches(leader, validator)
+            return self._verify_candidate(leader_result.calldata, spec)
 
-        verdict = gl.vm.run_nondet_unsafe(adjudicate, validate_leader)
-        verdict = self._validate_result(verdict, spec)
+        result = gl.vm.run_nondet_unsafe(adjudicate, validate_leader)
+        verdict = self._validate_result(result["verdict"], spec)
         verdict["marketId"] = spec["marketId"]
         verdict["specHash"] = self._spec_hash(spec)
+        verdict["evidence"] = result["evidence"]
+        verdict["evidenceDigest"] = result["evidenceDigest"]
+        verdict["attempt"] = len(self.attempts) + 1
+        verdict["observedAt"] = now
 
         self.verdict_json = json.dumps(verdict, separators=(",", ":"), sort_keys=True)
-        self.resolved = True
+        self.attempts.append(self.verdict_json)
+        self.last_attempt_at = u256(now)
+        self.resolved = verdict["status"] == "RESOLVED"
 
     @gl.public.view
     def get_spec(self) -> str:
@@ -399,9 +485,19 @@ Return JSON only:
 
     @gl.public.view
     def get_verdict(self) -> str:
-        if not self.resolved:
+        if not self.verdict_json:
             raise gl.vm.UserError("VERDICT_NOT_AVAILABLE")
         return self.verdict_json
+
+    @gl.public.view
+    def get_attempt(self, index: int) -> str:
+        if index < 0 or index >= len(self.attempts):
+            raise gl.vm.UserError("INVALID_ATTEMPT")
+        return self.attempts[index]
+
+    @gl.public.view
+    def get_progress(self) -> dict:
+        return {"resolved": self.resolved, "attempts": len(self.attempts), "maxAttempts": self._spec()["maxAttempts"]}
 `;
 
   return {

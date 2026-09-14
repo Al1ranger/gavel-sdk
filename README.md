@@ -1,73 +1,119 @@
 # Gavel SDK
 
-TypeScript SDK for prediction market resolution through GenLayer, with optional court, evidence, argument, and appeal workflows.
+**Evidence-aware prediction markets and intelligent oracles for GenLayer.**
+
+Gavel turns a typed JavaScript specification into a pinned, deployable GenLayer intelligent contract. Validators retrieve approved public evidence independently, reach consensus, and persist the result with its specification hash and evidence digest.
 
 ## Install
 
-After this package is published to npm:
-
-```sh
+```bash
 npm i @gavel-sdk/core
 ```
 
-Until publication, build this repository and install its generated tarball:
+Node.js 22.13 or newer is required.
 
-```sh
-npm install
-npm pack
-npm install ./gavel-sdk-core-0.1.0.tgz
-```
-
-## Read a market
+## Generate an intelligent contract
 
 ```ts
-import { Gavel } from '@gavel-sdk/core';
+import { writeFile } from 'node:fs/promises';
+import { earthquakeDemoContract } from '@gavel-sdk/core/contracts';
 
-const gavel = new Gavel({
-  network: 'localnet',
-  contractAddress: '0xYOUR_DEPLOYED_RESOLVER_ADDRESS',
-  rpcUrl: 'http://127.0.0.1:4000/api',
-});
-
-const market = await gavel.getMarket('GAV-0001');
-const verdict = await gavel.getVerdict(market.spec.marketId);
+const generated = earthquakeDemoContract();
+await writeFile('earthquake_resolver.py', generated.source);
+await writeFile('earthquake_resolver.json', JSON.stringify(generated.compiledSpec, null, 2));
 ```
 
-Replace the address with a deployed Gavel resolver. No deployment or live consensus is implied by installing the package.
+The generated Python contract pins a concrete GenVM runner, restricts evidence to explicit HTTPS origins, and stores deterministic hashes that clients can verify.
 
-## Register and resolve
+## Build a custom market
 
-Configure an account and wallet provider for writes. Server agents can instead supply a signer through secure runtime configuration. Never ship an agent private key to the browser.
+```ts
+import { generateIntelligentContract } from '@gavel-sdk/core/contracts';
 
-`createMarket(spec)` accepts a MarketSpec containing `marketId`, `question`, ordered `outcomes`, `resolutionRules`, `resolutionTime` (Unix seconds), exact HTTPS `approvedSources`, and a `sourcePolicy` object. `normalizeMarketSpec` validates and normalizes this data before registration.
+const contract = generateIntelligentContract({
+  className: 'GavelElectionResolver',
+  spec: {
+    marketId: 'CERTIFIED-ELECTION',
+    question: 'Did candidate A win the certified election?',
+    outcomes: [
+      { id: 'YES', index: 0, label: 'Candidate A won' },
+      { id: 'NO', index: 1, label: 'Candidate A did not win' },
+    ],
+    resolutionRules: ['Use the final certified result. Return UNRESOLVED on conflict.'],
+    resolutionTime: 1782864000,
+    approvedSources: ['https://results.example.gov/final.json'],
+    sourcePolicy: { authority: 'Official election authority' },
+  },
+  shape: { kind: 'BINARY' },
+  evidence: {
+    sources: [{ url: 'https://results.example.gov/final.json' }],
+  },
+});
+```
 
-`resolve(marketId)` requests adjudication. Write methods return a transaction hash and `SUBMITTED` status; they do not claim that consensus or settlement has completed.
+## Oracle modes
 
-## Finality
+| Generator | Result | Use case |
+| --- | --- | --- |
+| `generateIntelligentContract` | Categorical verdict | Prediction markets, claims, event resolution |
+| `generateScalarOracle` | Numeric observation and payout weights | Temperature, rainfall, prices, indexes |
+| `generateOddsJournal` | Consensus odds snapshots | Auditable market history and agent signals |
 
-`getVerdict` reads provisional state. `getFinalVerdict(marketId, transactionHash)` waits for successful finalized execution and reads final contract state. `UNRESOLVED` is valid and must not be treated as a winning outcome. Applications remain responsible for matching the resolution transaction to their market before paying out.
+`createOracleClient` reads contract state and defaults to finalized results. API helpers build evidence policies and preview public JSON. Platform modules add lifecycle certificates, validator consensus, evidence graphs, simulation, replay, and contract auditing.
 
-## Optional courts
+## Deploy with GenLayer CLI
 
-## API evidence and prediction results
+```bash
+npm run build
+npm run generate:examples
+genlayer network set studionet
+genlayer deploy --contract artifacts/studionet-samples/usgs_reviewed_2024_resolver.py
+genlayer deploy --contract artifacts/studionet-samples/berlin-temperature-20240701_scalaroracle.py
+```
 
-`readApi(request, { allowedOrigins })` reads GET/POST JSON with headers, nested field selection, response limits and timeouts. This is an off-chain preview. `createApiMarket(spec, sources)` registers public GET evidence URLs and interpretation rules for independent validator retrieval.
+Two SDK-generated examples are live on GenLayer StudioNet. Addresses, transaction hashes, and verification commands are in [StudioNet deployments](docs/STUDIONET-DEPLOYMENTS.md).
 
-`predictionResult(spec, verdict, transaction, odds?)` validates market/spec identity, preserves quoted odds, and returns terminal payout weights only for successful finalized RESOLVED verdicts. It formats supplied data; it does not independently authenticate a receipt or infer future odds.
+## Architecture
 
-Run `node examples/polymarket.ts` for live market quotes. Run `node examples/earthquake-contract.ts` to print a GenLayer contract for a historical USGS event. See [team features and limitations](docs/FEATURES.md).
+```text
+gavel-sdk/
+├── bin/                     CLI entry point
+├── demo/                    Local product demo
+├── docs/                    Architecture, oracle, backend, deployment guides
+├── examples/                Generation and live API examples
+├── src/
+│   ├── api/                 Typed backend API client
+│   ├── core/                Lifecycle, certificates, events, contract engine
+│   ├── evidence/            Fetch, normalize, verify, provenance graph
+│   ├── markets/             Binary, scalar, continuous, odds primitives
+│   ├── oracle/              Validators, consensus, confidence, reputation
+│   ├── security/            Audit and attack detection
+│   ├── simulation/          Adversarial simulation and replay
+│   ├── contracts.ts         Stable contract-generation exports
+│   ├── generate.ts          Categorical contract generator
+│   ├── oracles.ts           Scalar and odds-journal generators
+│   └── oracleClient.ts      Finality-aware onchain reader
+└── test/                    TypeScript, Python, browser, integration tests
+```
 
-## Court configuration
+See [oracle architecture](docs/ORACLE-ARCHITECTURE.md), [oracle API](docs/ORACLES.md), and [backend integration](docs/BACKEND.md).
 
-Pass `courtAddress` to enable `createCourt`, `createCase`, evidence and argument submissions, verdict requests, and appeals. The deployed contract remains the authority for eligibility, timing, and finality.
+## Trust model
+
+- Installing the SDK does not deploy a contract or prove an external fact.
+- An evidence digest proves which normalized evidence was used; validator consensus determines the accepted result.
+- `ACCEPTED` and `FINALIZED` are distinct lifecycle states. Settlement code must wait for successful finalization.
+- `UNRESOLVED` is a valid result and must never be treated as a winning outcome.
+- The SDK never creates, stores, or exposes wallet private keys.
 
 ## Development
 
-```sh
-npm install
+```bash
+npm ci
 npm run build
 npm test
+npm run test:contracts
 npm pack --dry-run
 ```
 
-The package ships compiled ESM and TypeScript declarations. It does not require consumers to transpile TypeScript dependencies.
+License: MIT

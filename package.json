@@ -3,19 +3,79 @@
   "version": "0.1.0",
   "type": "module",
   "description": "TypeScript SDK for Gavel prediction market resolution and GenLayer courts",
-  "repository": { "type": "git", "url": "git+https://github.com/Al1ranger/gavel-sdk.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Al1ranger/gavel-sdk.git"
+  },
   "homepage": "https://github.com/Al1ranger/gavel-sdk#readme",
   "main": "./dist/index.js",
+  "bin": {
+    "gavel": "./bin/gavel.mjs"
+  },
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js", "default": "./dist/index.js" } },
-  "files": ["dist", "README.md"],
-  "engines": { "node": ">=22.13.0" },
-  "publishConfig": { "access": "public" },
-  "scripts": { "build": "tsc -p tsconfig.build.json", "prepack": "npm run build", "test": "node --test test/*.test.ts" },
+  "exports": {
+    "./platform": {
+      "types": "./dist/platform.d.ts",
+      "import": "./dist/platform.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts.d.ts",
+      "import": "./dist/contracts.js"
+    },
+    "./clients": {
+      "types": "./dist/clients.d.ts",
+      "import": "./dist/clients.js"
+    },
+    "./markets": {
+      "types": "./dist/markets.d.ts",
+      "import": "./dist/markets.js"
+    },
+    "./evidence": {
+      "types": "./dist/contractEvidence.d.ts",
+      "import": "./dist/contractEvidence.js"
+    },
+    "./api": {
+      "types": "./dist/api.d.ts",
+      "import": "./dist/api.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "bin",
+    "docs/BACKEND.md",
+    "docs/ORACLE-ARCHITECTURE.md",
+    "docs/ORACLES.md",
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "tsc -p tsconfig.build.json --noEmit",
+    "pretest": "npm run build",
+    "generate:examples": "node examples/generate-suite.ts",
+    "test:contracts": "python -m pytest test/test_generated_contract.py test/test_oracles.py -v",
+    "test:integration": "gltest test/integration/ -v -s --network localnet",
+    "prepack": "npm run build",
+    "test": "node --test test/*.test.ts",
+    "demo": "node demo/server.mjs",
+    "test:live-api": "node examples/live-check.ts"
+  },
   "dependencies": {
     "genlayer-js": "1.1.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "22.19.19",
     "typescript": "5.9.3"
   }
 }

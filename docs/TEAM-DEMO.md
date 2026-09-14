@@ -4,6 +4,8 @@
 
 ## Five-minute walkthrough
 
+For the interactive version run `npm run build` then `npm run demo`, and open http://127.0.0.1:3100. Search live markets, switch odds formats, generate a market specification, and download its Python resolver. The protocol panel reads the configured registry without signing transactions.
+
 1. Run `npm run build && npm test` to verify the SDK.
 2. Run `node examples/polymarket.ts` to inspect real market quotes. Prices remain observations, not resolution evidence.
 3. Run `node examples/live-check.ts` to check both public API connections. Failures remain visible.

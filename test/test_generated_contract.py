@@ -21,7 +21,7 @@ def generated(tmp_path, direct_deploy):
 def test_required_review_controls_resolution(generated, reviewed, expected):
     spec = json.loads(generated.get_spec())
     result = generated._validate_result({
-        'status': 'RESOLVED', 'winnerIndex': 0, 'outcomeId': 'YES',
+        'status': 'RESOLVED', 'winnerIndex': 0, 'outcomeId': 'YES', 'confidenceBps': 9000,
         'facts': [], 'rulesApplied': [], 'conflicts': [],
         'featuresApplied': [{'feature': 'REVIEWED', 'satisfied': reviewed, 'explanation': 'Test input'}],
         'reasonCode': 'TEST', 'reasoningSummary': 'Synthetic validation test',
