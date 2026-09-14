@@ -3,4 +3,4 @@ export { generateIntelligentContract } from './generate.ts';
 export type { GenerateInput, GeneratedContract, MarketFeature } from './generate.ts';
 export { generateScalarOracle, generateOddsJournal } from './oracles.ts';
 export type { ScalarOracleInput, OddsJournalInput } from './oracles.ts';
-export { earthquakeDemoContract, weatherDemoContract, polymarketJournalContract } from './recipes.ts';
+export { earthquakeDemoContract, weatherDemoContract, polymarketJournalContract, gavelDeliveryProofContract } from './recipes.ts';

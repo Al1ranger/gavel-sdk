@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { earthquakeDemoContract, weatherDemoContract, polymarketJournalContract, generateIntelligentContract, generateScalarOracle, generateOddsJournal, normalizeEvidencePolicy, publicEvidenceUrl, impliedProbability } from '../dist/index.js';
+import { earthquakeDemoContract, weatherDemoContract, polymarketJournalContract, gavelDeliveryProofContract, generateIntelligentContract, generateScalarOracle, generateOddsJournal, normalizeEvidencePolicy, publicEvidenceUrl, impliedProbability } from '../dist/index.js';
 
 test('three workflows expose distinct state machines, not renamed certificates', () => {
   const resolver = earthquakeDemoContract();
@@ -18,6 +18,15 @@ test('three workflows expose distinct state machines, not renamed certificates',
   assert.doesNotMatch(scalar.source, /exec_prompt/);
   assert.match(journal.source, /snapshots: TreeMap/);
   assert.doesNotMatch(journal.source, /def resolve\(/);
+});
+
+test('delivery proof acquires normalized public evidence and binds the threshold decision', () => {
+  const proof = gavelDeliveryProofContract();
+  assert.match(proof.source, /gl\.nondet\.web\.get/);
+  assert.match(proof.source, /candidate\["evidenceDigest"\] != independent\["evidenceDigest"\]/);
+  assert.match(proof.source, /minimumConfidenceBps/);
+  assert.match(proof.source, /INSTALLABLE_SDK/);
+  assert.equal((proof.compiledSpec as any).evidence.sources[0].format, 'text');
 });
 
 test('evidence policy rejects unsafe URLs and unbounded projections', () => {

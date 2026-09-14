@@ -4,7 +4,40 @@ import { generateScalarOracle, generateOddsJournal } from './oracles.ts';
 export const PUBLIC_DEMO_SOURCES = {
   earthquake: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/us7000m9g4.geojson',
   weather: 'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&start_date=2024-07-01&end_date=2024-07-01&daily=temperature_2m_max&timezone=UTC',
+  gavelRepository: 'https://raw.githubusercontent.com/Al1ranger/gavel-sdk/main/README.md',
 } as const;
+
+/** Public delivery proof: validators fetch and evaluate the repository independently. */
+export function gavelDeliveryProofContract(): GeneratedContract {
+  return generateIntelligentContract({
+    spec: {
+      marketId: 'GAVEL-SDK-PUBLIC-DELIVERY',
+      question: 'Does the published Gavel SDK README document an installable GenLayer SDK with evidence-aware contract generation and StudioNet deployment?',
+      outcomes: [
+        { id: 'VERIFIED', index: 0, label: 'Public SDK delivery verified' },
+        { id: 'NOT_VERIFIED', index: 1, label: 'Public SDK delivery not verified' },
+      ],
+      resolutionTime: 1757869200,
+      approvedSources: [PUBLIC_DEMO_SOURCES.gavelRepository],
+      resolutionRules: [
+        'VERIFIED only when the acquired README documents npm installation, GenLayer intelligent-contract generation, and StudioNet deployment.',
+        'Return NOT_VERIFIED when any required delivery criterion is absent. Return UNRESOLVED when evidence cannot be acquired.',
+      ],
+      sourcePolicy: { authority: 'GitHub raw content for the public repository', corrections: 'Use the main-branch README acquired during adjudication.' },
+    },
+    shape: { kind: 'BINARY' },
+    features: [
+      { id: 'INSTALLABLE_SDK', required: true, requirement: 'Confirm the acquired README contains the npm installation command for @gavel-sdk/core.' },
+      { id: 'EVIDENCE_ACQUISITION', required: true, requirement: 'Confirm it documents contract-side evidence acquisition and evidence digests.' },
+      { id: 'STUDIONET_DELIVERY', required: true, requirement: 'Confirm it documents deployment with the GenLayer CLI on StudioNet.' },
+    ],
+    evidence: {
+      sources: [{ url: PUBLIC_DEMO_SOURCES.gavelRepository, format: 'text' }],
+    },
+    minimumConfidenceBps: 8000,
+    confidenceToleranceBps: 500,
+  });
+}
 
 /** Historical demo; values must still be acquired by every contract validator. */
 export function earthquakeDemoContract(): GeneratedContract {

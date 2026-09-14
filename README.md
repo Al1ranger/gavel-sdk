@@ -59,6 +59,8 @@ const contract = generateIntelligentContract({
 | `generateScalarOracle` | Numeric observation and payout weights | Temperature, rainfall, prices, indexes |
 | `generateOddsJournal` | Consensus odds snapshots | Auditable market history and agent signals |
 
+`gavelDeliveryProofContract()` is a reproducible proof recipe that acquires the public SDK README inside the nondeterministic flow and binds validator agreement to its normalized evidence digest and approval decision.
+
 `createOracleClient` reads contract state and defaults to finalized results. API helpers build evidence policies and preview public JSON. Platform modules add lifecycle certificates, validator consensus, evidence graphs, simulation, replay, and contract auditing.
 
 ## Deploy with GenLayer CLI
