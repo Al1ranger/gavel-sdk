@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFile, writeFile } from 'node:fs/promises';
+import { prepareStudioNext } from './studio-next.mjs';
 import { createGavelClient, normalizeMarketSpec, generateIntelligentContract, generateScalarOracle, generateOddsJournal, readApi, normalizeOdds } from '../dist/index.js';
 
 const [command = 'help', value, output] = process.argv.slice(2);
@@ -26,6 +27,9 @@ try {
   market <id>                   Read a registered specification
   verdict <id>                  Read a provisional verdict
   transaction <hash>            Inspect transaction finality
+
+  studio-next-info              Print Studio Next chain and RPC settings
+  prepare-studio-next <py> <dir> Create a resumable GenLayer CLI deployment project
 
 Reads require GAVEL_CONTRACT_ADDRESS, optional GAVEL_NETWORK and GENLAYER_RPC_URL.
 This CLI does not sign transactions. Use the SDK with your own signer for writes.`);
@@ -54,6 +58,10 @@ This CLI does not sign transactions. Use the SDK with your own signer for writes
     case 'transaction':
       if (!/^0x[0-9a-fA-F]{64}$/.test(value || '')) throw new Error('Provide a 32-byte transaction hash.');
       print(await client().getTransactionState(value)); break;
+    case 'studio-next-info':
+      print({ network: 'studioNext', chainId: 61997, rpcUrl: 'https://studio-dev.genlayer.com/api', explorer: 'https://explorer-studio-dev.genlayer.com' });
+      break;
+    case 'prepare-studio-next': print(await prepareStudioNext(value, output)); break;
     default: throw new Error(`Unknown command: ${command}. Run gavel help.`);
   }
 } catch (error) {

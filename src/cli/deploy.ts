@@ -1,10 +1,11 @@
 import { contentHash } from '../evidence/normalizer.ts';
 import { scanContract } from '../security/contractAuditor.ts';
 import { requireThat } from '../api/types.ts';
-export type DeploymentAdapter = { deploy: (source: string, network: string) => Promise<{ transactionHash: string }> };
+export type DeploymentNetwork = 'localnet' | 'studionet' | 'studioNext' | 'testnetBradbury';
+export type DeploymentAdapter = { deploy: (source: string, network: DeploymentNetwork) => Promise<{ transactionHash: string }> };
 /** Adapter owns signing and receipt handling. No automatic public deployment. */
-export async function deployContract(source: string, network: string, approvedSourceHash: string, adapter: DeploymentAdapter) {
-  requireThat(['localnet', 'studionet', 'testnetBradbury'].includes(network), 'DEPLOY_NETWORK', 'Only explicit development networks are supported.');
+export async function deployContract(source: string, network: DeploymentNetwork, approvedSourceHash: string, adapter: DeploymentAdapter) {
+  requireThat(['localnet', 'studionet', 'studioNext', 'testnetBradbury'].includes(network), 'DEPLOY_NETWORK', 'Only explicit development networks are supported.');
   requireThat(contentHash(source) === approvedSourceHash, 'DEPLOY_APPROVAL', 'Deployment requires approval of the exact source hash.');
   requireThat(scanContract(source).automatedChecksPassed, 'DEPLOY_SCAN', 'Resolve automated source findings first.');
   const result = await adapter.deploy(source, network);
