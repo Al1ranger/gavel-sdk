@@ -45,3 +45,15 @@ genlayer schema 0x1C5FB34a0aa88bB35150396b94F4Bf91D26d9471
 ```
 
 An accepted deployment confirms validator agreement on deployment execution. Applications must still inspect transaction finality before using a later oracle result for settlement.
+
+## Studio Next deployments (chain ID 61997)
+
+These deployments use the compatible `# v0.2.0` runtime header and the Studio Next live fee estimate.
+
+| Example | Contract | Deployment | Explorer |
+| --- | --- | --- | --- |
+| Public SDK delivery resolver | `0x8aB6Bb90BABd7A37cACb5DC8Ef16E37A3D1d6cC5` | `0xfd5ce69672a404e99bb8670c1b36f750ed938eec282693dd547797a0d50c2aee` | [address](https://explorer-studio-dev.genlayer.com/address/0x8aB6Bb90BABd7A37cACb5DC8Ef16E37A3D1d6cC5) |
+| Supplier delivery claims resolver | `0x469413c7693EB86e846940DE5988ADDBA7A8CD26` | `0x7fc1303076ad36381519655f9abba411d3417fef67eb105e1d46d19e0b424494` | [address](https://explorer-studio-dev.genlayer.com/address/0x469413c7693EB86e846940DE5988ADDBA7A8CD26) |
+| Content moderation appeals | `0xa7666ABE128355475e5fc065c77B45dc3c8Cf627` | `0xbb90143ce1a15a5fc6dc51924dbcd4faafc1c8e7edc90076b0c47d5f535aa501` | [address](https://explorer-studio-dev.genlayer.com/address/0xa7666ABE128355475e5fc065c77B45dc3c8Cf627) |
+
+All three deployments finalized with `FINISHED_WITH_RETURN`. The claims and moderation examples expose pinned rules and initial `PENDING`/`UNREVIEWED` state; the public delivery resolver proof read returned `resolved: false`, `attempts: 0`, and `maxAttempts: 8`.

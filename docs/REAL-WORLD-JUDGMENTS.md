@@ -1,0 +1,21 @@
+# Real-world Gavel judgments
+
+Gavel is useful when a contract needs an on-chain decision about evidence that is public but not naturally deterministic.
+
+## Supplier delivery disputes
+
+Buyer and supplier submit a shipment reference, delivery window, and approved evidence sources such as the carrier API and signed warehouse receipt. Validators independently retrieve the records, normalize timestamps and quantities, and agree on `DELIVERED`, `LATE`, `DAMAGED`, or `UNRESOLVED`. Escrow releases only after the decision is finalized; conflicting evidence stays unresolved and can be appealed.
+
+## Content moderation appeals
+
+A platform pins a moderation policy and the original post. Validators independently assess whether the post is impersonation, fraud, a targeted threat, or protected criticism. Gavel stores the policy hash, evidence digest, decision, and rationale so a user can appeal a reproducible decision rather than a private model response.
+
+## Insurance claim triage
+
+An insurer pins policy clauses, a claim packet, repair invoices, and an inspection source. Validators compare the same exclusions and evidence, returning `COVERED`, `PARTIAL`, `EXCLUDED`, or `UNRESOLVED`. The contract can authorize a capped payout only after successful finalization.
+
+## Prediction-market resolution
+
+A market pins its question, outcome IDs, resolution time, and approved sources. Validators independently fetch the official result, compare the stable outcome field, and store the result with a source digest. If sources disagree or disappear, the contract fails closed instead of inventing a winner.
+
+The common pattern is: immutable rules → approved evidence → independent validator judgment → canonical result → finalized settlement or appeal.

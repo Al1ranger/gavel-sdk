@@ -65,6 +65,12 @@ const contract = generateIntelligentContract({
 
 ## Deploy with GenLayer CLI
 
+### Verified Studio Next deployment
+
+[Gavel SDK public delivery resolver on Studio Next](https://explorer-studio-dev.genlayer.com/address/0x8aB6Bb90BABd7A37cACb5DC8Ef16E37A3D1d6cC5) is deployed on **chain ID 61997**. Deployment transaction: `0xfd5ce69672a404e99bb8670c1b36f750ed938eec282693dd547797a0d50c2aee`; verified `FINALIZED` with `FINISHED_WITH_RETURN`. Reading `get_progress` returned `{ attempts: 0, maxAttempts: 8, resolved: false }`.
+
+This deployment adds `# v0.2.0` before the generated pinned runner header and supplies both the live fee estimate's `distribution` and `feeValue`. Its deployment is verified; evidence resolution has not been run.
+
 ```bash
 npm run build
 npm run generate:examples
@@ -99,6 +105,8 @@ gavel-sdk/
 ```
 
 See [oracle architecture](docs/ORACLE-ARCHITECTURE.md), [oracle API](docs/ORACLES.md), and [backend integration](docs/BACKEND.md).
+
+Real-world judgment patterns are documented in [Real-world judgments](docs/REAL-WORLD-JUDGMENTS.md), including supplier delivery disputes, moderation appeals, insurance triage, and prediction-market resolution.
 
 ## Trust model
 
