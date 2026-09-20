@@ -143,3 +143,9 @@ npm pack --dry-run
 ```
 
 License: MIT
+
+## Developer site
+
+Interactive deployment guide: https://gavel-zeta.vercel.app/
+Docs: https://gavel-zeta.vercel.app/docs
+
