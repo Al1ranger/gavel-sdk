@@ -13,18 +13,18 @@
 | prediction / marketKinds | Odds conversion and terminal payout formatting |
 | client / courtClient | Existing registry and court interfaces; separate contract ABIs |
 
-Use focused imports: `@gavel-sdk/core/contracts`, `/clients`, `/markets`,
+Use focused imports: `gavel-judgment-sdk/contracts`, `/clients`, `/markets`,
 `/evidence`, or `/api`. Existing root imports remain supported. Contract generation
 and market validation do not need an RPC connection or a signer.
 
-All public APIs are also exported from `@gavel-sdk/core`. Contracts are generated as
+All public APIs are also exported from `gavel-judgment-sdk`. Contracts are generated as
 self-contained Python with a pinned GenVM runner. No frontend is required.
 
 ## Generate an event resolver
 
 ```ts
 import { writeFile } from 'node:fs/promises';
-import { earthquakeDemoContract } from '@gavel-sdk/core';
+import { earthquakeDemoContract } from 'gavel-judgment-sdk';
 
 const contract = earthquakeDemoContract();
 await writeFile(contract.filename, contract.source, { flag: 'wx' });

@@ -1,5 +1,5 @@
 {
-  "name": "@gavel-sdk/core",
+  "name": "gavel-judgment-sdk",
   "version": "0.1.1",
   "type": "module",
   "description": "TypeScript SDK for Gavel prediction market resolution and GenLayer courts",

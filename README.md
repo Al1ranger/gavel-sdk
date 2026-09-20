@@ -7,7 +7,7 @@ Gavel turns a typed JavaScript specification into a pinned, deployable GenLayer 
 ## Install
 
 ```bash
-npm i @gavel-sdk/core
+npm i gavel-judgment-sdk
 ```
 
 Node.js 22.13 or newer is required.
@@ -16,7 +16,7 @@ Node.js 22.13 or newer is required.
 
 ```ts
 import { writeFile } from 'node:fs/promises';
-import { earthquakeDemoContract } from '@gavel-sdk/core/contracts';
+import { earthquakeDemoContract } from 'gavel-judgment-sdk/contracts';
 
 const generated = earthquakeDemoContract();
 await writeFile('earthquake_resolver.py', generated.source);
@@ -28,7 +28,7 @@ The generated Python contract pins a concrete GenVM runner, restricts evidence t
 ## Build a custom market
 
 ```ts
-import { generateIntelligentContract } from '@gavel-sdk/core/contracts';
+import { generateIntelligentContract } from 'gavel-judgment-sdk/contracts';
 
 const contract = generateIntelligentContract({
   className: 'GavelElectionResolver',
