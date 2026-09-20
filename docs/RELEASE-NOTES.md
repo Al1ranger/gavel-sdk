@@ -1,9 +1,9 @@
 # Release notes
 
-## Unreleased repository changes
+## 0.1.3
 
 - Expanded deployment proof, troubleshooting and site documentation.
-- Generated source headers and the public-delivery recipe now reference gavel-judgment-sdk; the published 0.1.2 archive is unchanged.
+- Generated source headers and the public-delivery recipe now reference gavel-judgment-sdk.
 
 ## 0.1.2 — published
 
