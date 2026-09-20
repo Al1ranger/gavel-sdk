@@ -1,6 +1,6 @@
 {
   "name": "gavel-judgment-sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "TypeScript SDK for Gavel prediction market resolution and GenLayer courts",
   "repository": {
@@ -46,6 +46,8 @@
   },
   "files": [
     "bin",
+    "docs/REAL-WORLD-JUDGMENTS.md",
+    "docs/STUDIONET-DEPLOYMENTS.md",
     "docs/BACKEND.md",
     "docs/ORACLE-ARCHITECTURE.md",
     "docs/ORACLES.md",

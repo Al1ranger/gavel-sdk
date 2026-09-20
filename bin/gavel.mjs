@@ -66,6 +66,6 @@ This CLI does not sign transactions. Use the SDK with your own signer for writes
   }
 } catch (error) {
   // Avoid exposing provider payloads or credentials in automation logs.
-  console.error(JSON.stringify({ error: ['validate', 'generate', 'generate-scalar', 'generate-odds', 'odds', 'help'].includes(command) ? error.message : 'Command failed. Check input, configuration and provider availability.', command }));
+  console.error(JSON.stringify({ error: ['validate', 'generate', 'generate-scalar', 'generate-odds', 'odds', 'help', 'prepare-studio-next'].includes(command) ? error.message : 'Command failed. Check input, configuration and provider availability.', command }));
   process.exitCode = 1;
 }

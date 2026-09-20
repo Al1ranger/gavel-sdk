@@ -1,10 +1,12 @@
 import { createAccount, createClient } from 'genlayer-js';
 import { localnet, studionet, testnetAsimov, testnetBradbury } from 'genlayer-js/chains';
 import { TransactionHashVariant, TransactionStatus } from 'genlayer-js/types';
-import type { Hash } from 'genlayer-js/types';
+import type { Hash, Account, Address } from 'genlayer-js/types';
+import type { Eip1193Provider } from './wallet.ts';
 
 import { deriveProtocolState, isSettlementReady } from './status.ts';
 import { normalizeMarketSpec } from './market.ts';
+
 
 export type Outcome = { index: number; id: string; label: string };
 export type MarketSpec = {
@@ -42,8 +44,8 @@ export function createGavelClient(config: {
   contractAddress: `0x${string}`;
   privateKey?: `0x${string}`;
   rpcUrl?: string;
-  account?: NonNullable<Parameters<typeof createClient>[0]>['account'];
-  provider?: NonNullable<Parameters<typeof createClient>[0]>['provider'];
+  account?: Account | Address;
+  provider?: Eip1193Provider;
 }) {
   if (!/^0x[0-9a-fA-F]{40}$/.test(config.contractAddress)) throw new Error('A valid resolver contract address is required.');
   const chain = gavelChains[config.network];

@@ -113,7 +113,7 @@ Real-world judgment patterns are documented in [Real-world judgments](docs/REAL-
 Prepare a deployment project for Studio Next (chain ID `61997`) from a generated, zero-argument Gavel contract:
 
 ```bash
-gavel prepare-studio-next earthquake_resolver.py studio-next-deployment
+npx gavel prepare-studio-next earthquake_resolver.py studio-next-deployment
 cd studio-next-deployment
 npx --yes genlayer@0.40.0-rc.3 network set studio-dev
 npx --yes genlayer@0.40.0-rc.3 account list
@@ -122,7 +122,7 @@ npx --yes genlayer@0.40.0-rc.3 deploy
 
 Select or create your deployment account with GenLayer CLI first. The generated script checks chain 61997, adds the verified `# v0.2.0` header, obtains a live fee estimate, and submits both distribution and fee value. Signing stays in GenLayer CLI. It saves `transaction.json` immediately after submission and resumes that transaction on rerun. Success requires finalization and `FINISHED_WITH_RETURN`; the script prints the Studio Next explorer link and saves `receipt.json`.
 
-The fee allocation is a development preset for these generated contracts, not a measured profile for arbitrary contracts. Review it before signing. Constructor arguments default to empty. Studio Next can reset its state. The stable SDK client continues to use genlayer-js 1.x; Studio Next deployment uses the compatible CLI rather than an incomplete chain definition. `gavel studio-next-info` prints its canonical endpoints.
+The fee allocation is a development preset for these generated contracts, not a measured profile for arbitrary contracts. Review it before signing. Constructor arguments default to empty. Studio Next can reset its state. The stable SDK client continues to use genlayer-js 1.x; Studio Next deployment uses the compatible CLI rather than an incomplete chain definition. `npx gavel studio-next-info` prints its canonical endpoints.
 
 ## Trust model
 

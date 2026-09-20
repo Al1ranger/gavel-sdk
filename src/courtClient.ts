@@ -9,7 +9,8 @@
 
 import { createAccount, createClient } from 'genlayer-js';
 import { TransactionHashVariant, TransactionStatus } from 'genlayer-js/types';
-import type { Hash } from 'genlayer-js/types';
+import type { Hash, Account, Address } from 'genlayer-js/types';
+import type { Eip1193Provider } from './wallet.ts';
 
 import { gavelChains, type Network, type Verdict } from './client.ts';
 import { deriveProtocolState, isSettlementReady } from './status.ts';
@@ -36,8 +37,8 @@ export type CourtClientConfig = {
   courtAddress: `0x${string}`;
   privateKey?: `0x${string}`;
   rpcUrl?: string;
-  account?: NonNullable<Parameters<typeof createClient>[0]>['account'];
-  provider?: NonNullable<Parameters<typeof createClient>[0]>['provider'];
+  account?: Account | Address;
+  provider?: Eip1193Provider;
 };
 
 export function createCourtClient(config: CourtClientConfig) {

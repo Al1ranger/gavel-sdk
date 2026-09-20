@@ -20,3 +20,18 @@ test('Studio Next preparation pins runtime, refuses overwrite and rejects unknow
     await assert.rejects(prepareStudioNext(source, join(root, 'invalid')), /supported pinned runner/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test('Studio Next preparation handles Windows headers and actionable local errors', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'gavel-next-dx-'));
+  try {
+    const source = join(root, 'windows.py');
+    await assert.rejects(prepareStudioNext(source, join(root, 'missing')), /Contract file not found/);
+    await writeFile(source, '# v0.2.0\r\n# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }\r\nfrom genlayer import *\r\n');
+    const destination = join(root, 'deployment');
+    await prepareStudioNext(source, destination);
+    const generated = await readFile(join(destination, 'contract.py'), 'utf8');
+    assert.equal(generated.split('# v0.2.0').length, 2);
+    assert.equal(generated.includes('\r'), false);
+    await assert.rejects(prepareStudioNext(source, destination), /directory already exists/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});

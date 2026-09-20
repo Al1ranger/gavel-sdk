@@ -18,7 +18,7 @@ export type OddsSnapshot = EvidenceBound & {
   probabilitiesE8: number[]; overroundE8: number; coherent: boolean; settlementReady: false;
 };
 
-type GenLayerClient = ReturnType<typeof createClient>;
+type GenLayerClient = import('genlayer-js/types').GenLayerClient<import('genlayer-js/types').GenLayerChain>;
 export type OracleClientConfig = {
   network: Network;
   contractAddress: `0x${string}`;
