@@ -115,4 +115,4 @@ of hackathon eligibility, originality relative to unseen submissions, or winning
 
 ## Current deployment reference
 
-Package: `gavel-judgment-sdk@0.1.2`. For chain **61997**, use the [Studio Next guide](STUDIO-NEXT.md) and [verified deployment proof](deployments/studio-next-earthquake.json). Deployment and reads are verified; judgment resolution has not yet been executed. [Release notes](RELEASE-NOTES.md).
+Package: `gavel-judgment-sdk@0.1.3`. For chain **61997**, use the [Studio Next guide](STUDIO-NEXT.md) and [verified deployment proof](deployments/studio-next-earthquake.json). Deployment and reads are verified; judgment resolution has not yet been executed. [Release notes](RELEASE-NOTES.md).

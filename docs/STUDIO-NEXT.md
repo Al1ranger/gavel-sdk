@@ -4,7 +4,7 @@ Network: Studio-dev / Studio Next, chain ID **61997**. RPC: https://studio-dev.g
 
 ## Install and generate
 
-Node.js 22.13 or newer is required. Install with `npm install gavel-judgment-sdk`. npm version 0.1.2 includes the tested fixes. To use those fixes now, clone this repository, run `npm ci`, `npm run build`, then `npm pack` and install that tarball in your application.
+Node.js 22.13 or newer is required. Install with `npm install gavel-judgment-sdk`. npm version 0.1.3 includes the tested fixes. To use those fixes now, clone this repository, run `npm ci`, `npm run build`, then `npm pack` and install that tarball in your application.
 
 Save this as `generate.mjs` and run `node generate.mjs`:
 

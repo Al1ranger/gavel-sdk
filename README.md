@@ -10,7 +10,7 @@ Gavel turns a typed JavaScript specification into a pinned, deployable GenLayer 
 npm i gavel-judgment-sdk
 ```
 
-Node.js 22.13 or newer is required. npm version 0.1.2 includes the tested developer-experience fixes. See [release notes](docs/RELEASE-NOTES.md) and the [Studio Next guide](docs/STUDIO-NEXT.md).
+Node.js 22.13 or newer is required. npm version 0.1.3 includes the tested developer-experience fixes. See [release notes](docs/RELEASE-NOTES.md) and the [Studio Next guide](docs/STUDIO-NEXT.md).
 
 ## Generate an intelligent contract
 
