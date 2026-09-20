@@ -46,6 +46,9 @@
   },
   "files": [
     "bin",
+    "docs/STUDIO-NEXT.md",
+    "docs/RELEASE-NOTES.md",
+    "docs/deployments",
     "docs/REAL-WORLD-JUDGMENTS.md",
     "docs/STUDIONET-DEPLOYMENTS.md",
     "docs/BACKEND.md",

@@ -10,7 +10,7 @@ Gavel turns a typed JavaScript specification into a pinned, deployable GenLayer 
 npm i gavel-judgment-sdk
 ```
 
-Node.js 22.13 or newer is required.
+Node.js 22.13 or newer is required. npm version 0.1.2 includes the tested developer-experience fixes. See [release notes](docs/RELEASE-NOTES.md) and the [Studio Next guide](docs/STUDIO-NEXT.md).
 
 ## Generate an intelligent contract
 
@@ -65,7 +65,11 @@ const contract = generateIntelligentContract({
 
 ## Deploy with GenLayer CLI
 
-### Verified Studio Next deployment
+### Latest verified Studio Next deployment
+
+[USGS earthquake resolver](https://explorer-studio-dev.genlayer.com/address/0xA059bF529c15fDd69ad5320F80DFd04bfc24A2F4) deployed on **chain 61997** through the SDK-generated deployment workflow. Transaction: `0x6760f2f13aa7861cbaddb830811c01b4d9868724ac04bfbc717eb082c68b4a3c`. Verified `FINALIZED` and `FINISHED_WITH_RETURN`; `get_progress` returned `{ attempts: 0, maxAttempts: 8, resolved: false }`. Deployment and reads are verified; evidence judgment has not been executed. [Machine-readable proof](docs/deployments/studio-next-earthquake.json).
+
+### Earlier verified Studio Next deployment
 
 [Gavel SDK public delivery resolver on Studio Next](https://explorer-studio-dev.genlayer.com/address/0x8aB6Bb90BABd7A37cACb5DC8Ef16E37A3D1d6cC5) is deployed on **chain ID 61997**. Deployment transaction: `0xfd5ce69672a404e99bb8670c1b36f750ed938eec282693dd547797a0d50c2aee`; verified `FINALIZED` with `FINISHED_WITH_RETURN`. Reading `get_progress` returned `{ attempts: 0, maxAttempts: 8, resolved: false }`.
 
