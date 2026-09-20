@@ -7,7 +7,7 @@
     "type": "git",
     "url": "git+https://github.com/Al1ranger/gavel-sdk.git"
   },
-  "homepage": "https://github.com/Al1ranger/gavel-sdk#readme",
+  "homepage": "https://gavel-zeta.vercel.app/",
   "main": "./dist/index.js",
   "bin": {
     "gavel": "./bin/gavel.mjs"

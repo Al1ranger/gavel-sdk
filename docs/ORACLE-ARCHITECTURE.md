@@ -48,3 +48,7 @@ workflow are configuration variants, not independently novel hackathon entries.
 Local direct tests run a leader with mocked HTTP/model responses. Explicit
 validator-callback tests exercise comparison logic but are not network consensus.
 Live integration is a separate opt-in check against a configured GenLayer node.
+
+## Current deployment reference
+
+Package: `gavel-judgment-sdk@0.1.2`. For chain **61997**, use the [Studio Next guide](STUDIO-NEXT.md) and [verified deployment proof](deployments/studio-next-earthquake.json). Deployment and reads are verified; judgment resolution has not yet been executed. [Release notes](RELEASE-NOTES.md).

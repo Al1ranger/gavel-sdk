@@ -27,7 +27,7 @@ export function gavelDeliveryProofContract(): GeneratedContract {
     },
     shape: { kind: 'BINARY' },
     features: [
-      { id: 'INSTALLABLE_SDK', required: true, requirement: 'Confirm the acquired README contains the npm installation command for @gavel-sdk/core.' },
+      { id: 'INSTALLABLE_SDK', required: true, requirement: 'Confirm the acquired README contains the npm installation command for gavel-judgment-sdk.' },
       { id: 'EVIDENCE_ACQUISITION', required: true, requirement: 'Confirm it documents contract-side evidence acquisition and evidence digests.' },
       { id: 'STUDIONET_DELIVERY', required: true, requirement: 'Confirm it documents deployment with the GenLayer CLI on StudioNet.' },
     ],

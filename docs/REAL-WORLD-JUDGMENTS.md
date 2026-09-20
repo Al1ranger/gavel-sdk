@@ -2,6 +2,13 @@
 
 Gavel is useful when a contract needs an on-chain decision about evidence that is public but not naturally deterministic.
 
+
+## Verified deployment and current release
+
+Use `npm install gavel-judgment-sdk@0.1.2`. [Studio Next deployment guide](STUDIO-NEXT.md) documents the verified earthquake resolver on chain **61997**: [0xA059bF529c15fDd69ad5320F80DFd04bfc24A2F4](https://explorer-studio-dev.genlayer.com/address/0xA059bF529c15fDd69ad5320F80DFd04bfc24A2F4). Its deployment finalized with `FINISHED_WITH_RETURN`, and `get_progress` was read successfully. Judgment resolution has not been executed.
+
+The use cases below describe application designs, not completed judgments or verified payouts.
+
 ## Supplier delivery disputes
 
 Buyer and supplier submit a shipment reference, delivery window, and approved evidence sources such as the carrier API and signed warehouse receipt. Validators independently retrieve the records, normalize timestamps and quantities, and agree on `DELIVERED`, `LATE`, `DAMAGED`, or `UNRESOLVED`. Escrow releases only after the decision is finalized; conflicting evidence stays unresolved and can be appealed.

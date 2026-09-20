@@ -112,3 +112,7 @@ Source references: [GenLayer HTTP acquisition](https://docs.genlayer.com/develop
 Not yet verified: live deployment, distributed consensus, settlement integration,
 or production security audit. This is a tested developer candidate, not a claim
 of hackathon eligibility, originality relative to unseen submissions, or winnings.
+
+## Current deployment reference
+
+Package: `gavel-judgment-sdk@0.1.2`. For chain **61997**, use the [Studio Next guide](STUDIO-NEXT.md) and [verified deployment proof](deployments/studio-next-earthquake.json). Deployment and reads are verified; judgment resolution has not yet been executed. [Release notes](RELEASE-NOTES.md).
